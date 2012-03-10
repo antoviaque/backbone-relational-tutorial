@@ -1,0 +1,131 @@
+/*
+ * Copyright (C) 2012 Xavier Antoviaque <xavier@antoviaque.org>
+ *
+ * This software's license gives you freedom; you can copy, convey,
+ * propagate, redistribute and/or modify this program under the terms of
+ * the GNU Affero Gereral Public License (AGPL) as published by the Free
+ * Software Foundation (FSF), either version 3 of the License, or (at your
+ * option) any later version of the AGPL published by the FSF.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program in a file in the toplevel directory called
+ * "AGPLv3".  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* Global **********************************************************/
+
+html, body {
+    font-family: 'Helvetica';
+    font-size: 12px;
+    line-height: 130%;
+    color: #B9C2A8;
+    padding: 0;
+    margin: 0;
+    background-color: #d2543b;
+}
+
+
+a {
+    color: #B9C2A8;
+}
+
+.container {
+	width: 800px;
+	position: relative;
+	left: 50%;
+	margin-left: -400px;
+}
+
+.shadow {
+	position: absolute;
+	height: 100%;
+	width: 21px;
+}
+
+.shadow.left {
+    background: transparent url('../img/shadow_left.png') repeat left top;
+	top: 0;
+	left: 0;
+	margin-left: -21px;
+}
+
+.shadow.right {
+    background: transparent url('../img/shadow_right.png') repeat right top;
+	top: 0;
+    right: 0;
+    margin-right: -21px;
+}
+
+.main {
+	padding: 20px;
+    background-image: url('../img/green_bkg.png');mok
+}
+
+.centered {
+	text-align: center;
+}
+
+ul {
+	list-style-type: none;
+}
+
+.thread_list .thread_summary_view {
+	font-size: 15px;
+	font-weight: bold;
+	padding: 10px;
+	border-bottom: 1px solid;
+	border-color: grey;
+	cursor: pointer;
+    margin: 10px;
+    background-color: #6c8738;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    -ms-border-radius: 10px;
+    -o-border-radius: 10px;
+    border-radius: 10px;
+}
+
+.thread_list .thread_summary_view .thread_title {
+	font-weight: bold;
+}
+
+.thread_list .thread_summary_view .thread_nb_messages {
+    float: right;
+}
+
+input[type=text] {
+	padding: 5px;
+	width: 400px;
+	margin: 5px;
+}
+
+textarea {
+	width: 400px;
+	height: 200px;
+	margin: 5px;
+}
+
+.message_author {
+	font-weight: bold;
+	padding: 10px 0 0 5px;
+}
+
+.message_text {
+	font-size: 14px;
+	padding: 20px;
+}
+	
+.message {
+	margin: 20px;
+    background-color: #6c8738;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    -ms-border-radius: 10px;
+    -o-border-radius: 10px;
+    border-radius: 10px;	
+}
