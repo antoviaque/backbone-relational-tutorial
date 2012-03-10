@@ -11,23 +11,26 @@
 <h1>Backbone-relational Tutorial - Nested Models With Backbone.js</h1>
 <h2>Introduction</h2>
 <h3>Backbone.js</h3>
-<p>Using Backbone.js to create rich javascript clients is incredibly useful. Backbone.js allows to implement the whole MVC pattern on the client, leaving the server to do what he knows best: exposing a set of well-defined REST interfaces, which the client queries when he needs to fetch or update some information. No need for dirty legwork, and all that splitting of the HTML rendering between the server templates and the client-side javascript. </p>
+<p>Backbone.js allows to implement the whole MVC pattern on the client, leaving the server to do what he knows best: exposing a set of well-defined REST interfaces, which the client queries when he needs to fetch or update some information. No need to split the HTML rendering between the server templates and the client-side javascript. </p>
 <p>It's not only cleaner, it's also an excellent architecture to make responsive applications. Less information needs to be exchanged with the server - the formatting (views and controllers) being on the client, you only need to exchange the data being manipulated on the REST interfaces. </p>
 <p>No full page reload - the server sends a static HTML file upon the first request, then the JS client handles the interaction with the user, only remodeling the portions of the DOM that changes between pages. And, better still, Backbone.js takes care of a large part of the work required to synchronize data with the server. Sweet!</p>
 <h3>Backbone-relational</h3>
-<p>When I recently started to learn about Backbone, however, I quickly ran into a large blocker - Backbone doesn't help you to handle relationships between models. Most non-trivial applications need this - forum threads each have a series of comments, billing invoices have several items to charge for... </p>
+<p>However, when I recently started to learn about Backbone, I realized it doesn't help to handle relationships between models. Most non-trivial applications need this - forum threads each have a series of comments, billing invoices have several items to charge for... </p>
 <p>If you're reading this, you've probably found out about backbone-relational after reading a few threads. But the documentation is sparse, and it's hard to see how to use it practically. How do you structure your views to represent the relations between models? How do you update or push relational models to their corresponding REST APIs?</p>
 <h3>Scope of the tutorial</h3>
 <p>This tutorial attempts to answer that - showing you, step by step, how to structure a sample application (a simplistic forum), using Backbone-relational to expose inter-dependent models from a set of REST APIs. </p>
-<p>Note that it doesn't attempt to be a complete tutorial on Backbone.js, it is more a practical HOWTO on how to proceed once you've understood the basics. You may want to read a <a href="http://backbonetutorials.com/">Backbone.js tutorial</a> for some basic understanding about Backbone.js' models, views, routers and collections, and maybe have a quick look at the <a href="http://documentcloud.github.com/backbone/examples/todos/index.html">TODO sample application</a>, which doesn't use Backbone-relational or REST services, to get a feel of how code based on Backbone looks like.</p>
+<p>Note that this not meant to be a complete tutorial on Backbone.js, it is more a practical HOWTO on how to proceed with nested relationships once you've understood the basics. You may want to read a <a href="http://backbonetutorials.com/">Backbone.js tutorial</a> to learn about Backbone.js' models, views, routers and collections. Maybe also have a quick look at the <a href="http://documentcloud.github.com/backbone/examples/todos/index.html">TODO sample application</a> to get a feel of how code based on Backbone looks like - it is simpler as it doesn't use relational model and doesn't attempt to synchronize with REST services.</p>
 <p>Another great source of information is the <a href="http://documentcloud.github.com/backbone/docs/backbone.html">source code of Backbone.js</a> itself, which is short, readable and extensively annotated. Whenever in doubt, don't hesitate to dig in.</p>
+<blockquote>
+<p><em>Warning: I'm new to Backbone, so don't expect a definitive resource. I merely attempted to provide the tutorial that would have helped me, when I first came in contact with Backbone-relational. If you notice mistakes, or know better techniques than what is explained here, please leave a comment or make a push request on the <a href="https://github.com/antoviaque/backbone-relational-tutorial">project page</a></em></p>
+</blockquote>
 <h2>Defining the models</h2>
 <p>To demonstrate how Backbone-relational allows you to define relationships between models, and how to sync the data with the server in this case, we're going to look at a simple forum application. It should allow to create forum threads (topics) and list the threads that have been created, as well as post messages in each thread. </p>
 <p>Although simple enough for the scope of this tutorial, the fact that each thread should be able to contain several messages is a good use case for Backbone-relational - one of those fairly common situation where you want to create a one-to-many relationship between two models. </p>
 <blockquote>
 <p><em><em>Note:</em> Backbone-relation supports other types of relationships, one-to-one and many-to-many - once you have been through this tutorial, using those other types of relationships should be straightforward. Refer to the <a href="https://github.com/PaulUithol/Backbone-relational">Backbone-relational documentation</a> for more information.</em></p>
 </blockquote>
-<p>We're going to define two models, Thread and Message, a Thread being able to contain multiple messages.</p>
+<p>We're going to define two models, <code>Thread</code> and <code>Message</code>, a <code>Thread</code> being able to contain multiple <code>Messages</code>.</p>
 <h3>Message Model</h3>
 <pre><code>(function($) {
 
@@ -141,3 +144,7 @@
     }
 ]
 </code></pre>
+<h2>License</h2>
+<p>TODO</p>
+<h2>Getting the source</h2>
+<p>TODO</p>

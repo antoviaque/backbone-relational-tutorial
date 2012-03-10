@@ -6,7 +6,7 @@ Introduction
 
 ### Backbone.js
 
-Using Backbone.js to create rich javascript clients is incredibly useful. Backbone.js allows to implement the whole MVC pattern on the client, leaving the server to do what he knows best: exposing a set of well-defined REST interfaces, which the client queries when he needs to fetch or update some information. No need for dirty legwork, and all that splitting of the HTML rendering between the server templates and the client-side javascript. 
+Backbone.js allows to implement the whole MVC pattern on the client, leaving the server to do what he knows best: exposing a set of well-defined REST interfaces, which the client queries when he needs to fetch or update some information. No need to split the HTML rendering between the server templates and the client-side javascript. 
 
 It's not only cleaner, it's also an excellent architecture to make responsive applications. Less information needs to be exchanged with the server - the formatting (views and controllers) being on the client, you only need to exchange the data being manipulated on the REST interfaces. 
 
@@ -14,7 +14,7 @@ No full page reload - the server sends a static HTML file upon the first request
 
 ### Backbone-relational
 
-When I recently started to learn about Backbone, however, I quickly ran into a large blocker - Backbone doesn't help you to handle relationships between models. Most non-trivial applications need this - forum threads each have a series of comments, billing invoices have several items to charge for... 
+However, when I recently started to learn about Backbone, I realized it doesn't help to handle relationships between models. Most non-trivial applications need this - forum threads each have a series of comments, billing invoices have several items to charge for... 
 
 If you're reading this, you've probably found out about backbone-relational after reading a few threads. But the documentation is sparse, and it's hard to see how to use it practically. How do you structure your views to represent the relations between models? How do you update or push relational models to their corresponding REST APIs?
 
@@ -22,9 +22,11 @@ If you're reading this, you've probably found out about backbone-relational afte
 
 This tutorial attempts to answer that - showing you, step by step, how to structure a sample application (a simplistic forum), using Backbone-relational to expose inter-dependent models from a set of REST APIs. 
 
-Note that it doesn't attempt to be a complete tutorial on Backbone.js, it is more a practical HOWTO on how to proceed once you've understood the basics. You may want to read a [Backbone.js tutorial][Backbone.js Tutorials] for some basic understanding about Backbone.js' models, views, routers and collections, and maybe have a quick look at the [TODO sample application][TODO Sample Application], which doesn't use Backbone-relational or REST services, to get a feel of how code based on Backbone looks like.
+Note that this not meant to be a complete tutorial on Backbone.js, it is more a practical HOWTO on how to proceed with nested relationships once you've understood the basics. You may want to read a [Backbone.js tutorial][Backbone.js Tutorials] to learn about Backbone.js' models, views, routers and collections. Maybe also have a quick look at the [TODO sample application][TODO Sample Application] to get a feel of how code based on Backbone looks like - it is simpler as it doesn't use relational model and doesn't attempt to synchronize with REST services.
 
 Another great source of information is the [source code of Backbone.js][Source Code of Backbone.js] itself, which is short, readable and extensively annotated. Whenever in doubt, don't hesitate to dig in.
+
+> _Warning: I'm new to Backbone, so don't expect a definitive resource. I merely attempted to provide the tutorial that would have helped me, when I first came in contact with Backbone-relational. If you notice mistakes, or know better techniques than what is explained here, please leave a comment or make a push request on the [project page][Project Page]_
 
 Defining the models
 -------------------
@@ -35,7 +37,7 @@ Although simple enough for the scope of this tutorial, the fact that each thread
 
 > _*Note:* Backbone-relation supports other types of relationships, one-to-one and many-to-many - once you have been through this tutorial, using those other types of relationships should be straightforward. Refer to the [Backbone-relational documentation][Backbone-relational] for more information._
 
-We're going to define two models, Thread and Message, a Thread being able to contain multiple messages.
+We're going to define two models, `Thread` and `Message`, a `Thread` being able to contain multiple `Messages`.
 
 ### Message Model
 
@@ -184,4 +186,5 @@ TODO
 [Backbone.js Tutorials]:        http://backbonetutorials.com/
 [Source Code of Backbone.js]:   http://documentcloud.github.com/backbone/docs/backbone.html
 [TODO Sample Application]:      http://documentcloud.github.com/backbone/examples/todos/index.html
+[Project Page]:                 https://github.com/antoviaque/backbone-relational-tutorial
 
