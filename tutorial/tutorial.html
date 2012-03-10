@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Backbone-relational Tutorial - Nested Models With Backbone.js</title>
+	<link rel="stylesheet" href="markdown.css">
+</head>
+
+<body>
+
+<h1>Backbone-relational Tutorial - Nested Models With Backbone.js</h1>
+<h2>Introduction</h2>
+<h3>Backbone.js</h3>
+<p>Using Backbone.js to create rich javascript clients is incredibly useful. Backbone.js allows to implement the whole MVC pattern on the client, leaving the server to do what he knows best: exposing a set of well-defined REST interfaces, which the client queries when he needs to fetch or update some information. No need for dirty legwork, and all that splitting of the HTML rendering between the server templates and the client-side javascript. </p>
+<p>It's not only cleaner, it's also an excellent architecture to make responsive applications. Less information needs to be exchanged with the server - the formatting (views and controllers) being on the client, you only need to exchange the data being manipulated on the REST interfaces. </p>
+<p>No full page reload - the server sends a static HTML file upon the first request, then the JS client handles the interaction with the user, only remodeling the portions of the DOM that changes between pages. And, better still, Backbone.js takes care of a large part of the work required to synchronize data with the server. Sweet!</p>
+<h3>Backbone-relational</h3>
+<p>When I recently started to learn about Backbone, however, I quickly ran into a large blocker - Backbone doesn't help you to handle relationships between models. Most non-trivial applications need this - forum threads each have a series of comments, billing invoices have several items to charge for... </p>
+<p>If you're reading this, you've probably found out about backbone-relational after reading a few threads. But the documentation is sparse, and it's hard to see how to use it practically. How do you structure your views to represent the relations between models? How do you update or push relational models to their corresponding REST APIs?</p>
+<h3>Scope of the tutorial</h3>
+<p>This tutorial attempts to answer that - showing you, step by step, how to structure a sample application (a simplistic forum), using Backbone-relational to expose inter-dependent models from a set of REST APIs. </p>
+<p>Note that it doesn't attempt to be a complete tutorial on Backbone.js, it is more a practical HOWTO on how to proceed once you've understood the basics. You may want to read a <a href="http://backbonetutorials.com/">Backbone.js tutorial</a> for some basic understanding about Backbone.js' models, views, routers and collections, and maybe have a quick look at the <a href="http://documentcloud.github.com/backbone/examples/todos/index.html">TODO sample application</a>, which doesn't use Backbone-relational or REST services, to get a feel of how code based on Backbone looks like.</p>
+<p>Another great source of information is the <a href="http://documentcloud.github.com/backbone/docs/backbone.html">source code of Backbone.js</a> itself, which is short, readable and extensively annotated. Whenever in doubt, don't hesitate to dig in.</p>
+<h2>Defining the models</h2>
+<p>To demonstrate how Backbone-relational allows you to define relationships between models, and how to sync the data with the server in this case, we're going to look at a simple forum application. It should allow to create forum threads (topics) and list the threads that have been created, as well as post messages in each thread. </p>
+<p>Although simple enough for the scope of this tutorial, the fact that each thread should be able to contain several messages is a good use case for Backbone-relational - one of those fairly common situation where you want to create a one-to-many relationship between two models. </p>
+<blockquote>
+<p><em><em>Note:</em> Backbone-relation supports other types of relationships, one-to-one and many-to-many - once you have been through this tutorial, using those other types of relationships should be straightforward. Refer to the <a href="https://github.com/PaulUithol/Backbone-relational">Backbone-relational documentation</a> for more information.</em></p>
+</blockquote>
+<p>We're going to define two models, Thread and Message, a Thread being able to contain multiple messages.</p>
+<h3>Message Model</h3>
+<pre><code>(function($) {
+
+    $.forum = {}
+
+    $.forum.Message = Backbone.RelationalModel.extend({
+        urlRoot: '/api/message',
+        idAttribute: '_id',
+    });
+
+})(jQuery);
+</code></pre>
+<p>First, we're defining the <code>Message</code> model, the most simple. Note that we're extending Backbone.RelationalModel rather than BackboneModel, to take advantage of the extra features Backbone-relational. </p>
+<blockquote>
+<p><em>Note 1: We define a <code>$.forum</code> array, which will contain all the application objects. Some developers chose to assign them to the <code>window</code> object, or define them as globals. Defining a specific array allows to isolate ours objects on a dedicated namespace.</em></p>
+<p><em>Note 2: A sample implementation of the web service providing the REST interfaces is provided in the tutorial code, using Node.js and Restify. This is out of the scope of this tutorial, so I won't say much about them here. To run the service, have a look at the <code>INSTALL</code> file at the root of the project files.</em></p>
+</blockquote>
+<h4>REST API - POST /api/message/</h4>
+<p>The REST interface on the server is at <code>/api/message</code>, and allows to POST a message of the following JSON format:</p>
+<pre><code>{
+    "author": "Author Name",
+    "text": "The message",
+    "thread": "thread_id"
+}
+</code></pre>
+<p>The <code>thread</code> attribute will be automatically defined by Backbone-relational, and will contain the <code>_id</code> attribute of the Thread model defined below. It allows the webservice to know which thread the message belongs to.</p>
+<p>If the request is successful, the server returns the same object, to which it adds the unique '_id' attribute used by the database to identify it.</p>
+<blockquote>
+<p><em>Note: For the simple forum we're developing for this tutorial, we only need to define a <code>POST</code> interface. It allows to add _new</em> <code>message</code> objects to the database - this will come handy when you'll be visiting a given thread and will want to post a reply to the initial post. We will be <code>GET</code>ting the <code>message</code> objects currently in the database from the <code>/api/thread/</code> interface defined below. If we were implementing a full-fledged application, we would define all the methods: <code>GET</code> to retreive individual <code>message</code> objects, <code>PUT</code> to update an existing <code>message</code>, <code>DELETE</code>, etc._</p>
+</blockquote>
+<h3>Thread Model</h3>
+<pre><code>$.forum.Thread = Backbone.RelationalModel.extend({
+    urlRoot: '/api/thread',
+    idAttribute: '_id',
+    relations: [{
+        type: Backbone.HasMany,
+        key: 'messages',
+        relatedModel: '$.forum.Message',
+        reverseRelation: {
+            key: 'thread',
+            includeInJSON: '_id',
+        },
+    }]
+});
+</code></pre>
+<p>The <code>relations</code> option comes from Backbone-relational, and allows to specify how the <code>Thread</code> objects relate to the <code>Message</code> objects:</p>
+<ul>
+<li><code>type: Backbone.HasMany</code>: Each <code>Thread</code> can contain references to multiple <code>Message</code>s.</li>
+<li><code>key: 'messages'</code>: The name of the attribute of <code>Thread</code> objects containing the external references. <code>Thread.messages</code> will contain an array of <code>Message</code>s.</li>
+<li><code>relatedModel: '$.forum.Message'</code>: The model being referenced.</li>
+<li><code>reverseRelation.key = 'thread'</code>: The reverse reference to the <code>Thread</code> object, from each of the <code>Message</code> objects contained. For example, if <code>thread.messages = [message]</code>, then <code>message.thread</code> will contain a reference to the <code>thread</code> object.</li>
+<li><code>reverseRelation.includeInJSON = '_id'</code>: Tells Backbone-relational to store the value of one of the <code>Thread</code> attributes in <code>message.thread</code>, rather than a reference to the object itself. Here, if <code>thread._id = '123'</code>, then <code>message.thread</code> will contain '123'.</li>
+</ul>
+<h4>REST API - GET /api/thread/:id</h4>
+<p>The REST interface on the server is at <code>/api/thread/</code>, and allows to GET a <code>thread</code> object along with all its messages by specifying its id (<code>/api/thread/456</code>), using the following JSON format:</p>
+<pre><code>{
+    "_id": "456",
+    "title": "The thread title",
+    "messages": [
+        {
+            "_id": "123",
+            "author": "Author Name",
+            "text": "The message"
+        }, {
+            "_id": "124",
+            "author": "Second Author Name",
+            "text": "The reply to the previous message"
+        }
+    ]
+}
+</code></pre>
+<p>The <code>messages</code> attribute contains a list of all the messages contained in the thread. The <code>message</code>s objects are expanded (it's not just a reference to their ids), to allow to get the whole content of a thread in one request. </p>
+<p>Django-relational will automatically assign each of the array elements of the <code>message</code> attribute to a separate <code>Message</code> object, and set the reverse reference (<code>message.thread</code>) to the value of the <code>thread._id</code> attribute (here, "456").</p>
+<h4>REST API - POST /api/thread/</h4>
+<p>The interface also allows to POST a new <code>thread</code> to add to the database, by sending the following JSON structure:</p>
+<pre><code>{
+    "title": "My new thread",
+    "messages": []
+}
+</code></pre>
+<p>If successful, the server returns the same object, to which it adds the unique '_id' attribute used by the database to identify it.</p>
+<h3>List of threads</h3>
+<p>The <code>Thread</code> and <code>Message</code> models, along with their associated APIs server-side, will allow us to keep track of all the messages in a given thread, and allow us to post new threads and messages. But how will we know about all the threads in the forum? Surely we'll want to present a list of the forum thread to new visitors.</p>
+<p>This is where collections come in - they allow to query the database for a set of objects (here, all the forum threads), a bit like the way a <code>Thread</code> contains a reference to a set of <code>Message</code>s.</p>
+<pre><code>$.forum.ThreadCollection = Backbone.Collection.extend({
+    url: '/api/thread',
+    model: $.forum.Thread,
+})
+</code></pre>
+<h4>REST API - GET /api/thread/</h4>
+<p>The collection will <code>GET /api/thread/</code> for the array of all the forum threads:</p>
+<pre><code>[
+    {
+        "_id": "456",
+        "title": "The thread title",
+        "messages": [
+            {
+                "_id": "123",
+                "author": "Author Name",
+                "text": "The message"
+            }, {
+                "_id": "124",
+                "author": "Second Author Name",
+                "text": "The reply to the previous message"
+            }
+        ]
+    }, {
+        "_id": "457",
+        "title": "My new thread",
+        "messages": []
+    }
+]
+</code></pre>
