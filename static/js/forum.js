@@ -87,16 +87,12 @@
         },
         
         on_thread_created: function(thread, response) {
-            console.log('bla1');
             this.model.add(thread, {at: 0});
-            console.log('bla2');
             var message = new $.forum.Message({ author: this.$('.new_message_author').val(),
                                                  text: this.$('.new_message_text').val(),
                                                  thread: thread.get('_id') });
-            console.log('bla3');
             message.save({}, { 
                 success: function() {
-                    console.log('bla4');
                     $.forum.app.navigate('thread/'+thread.get('_id')+'/', { trigger: true });
                 },
                 error: this.on_error,
@@ -142,7 +138,7 @@
         className: 'thread_view',
         
         initialize: function(){
-            _.bindAll(this, 'render', 'render_message', 'on_keypress', 'on_submit');
+            _.bindAll(this, 'render', 'render_message', 'on_submit');
             this.model.bind('change', this.render);
             this.model.bind('reset', this.render);
             this.model.bind('add:messages', this.render_message); 
@@ -151,8 +147,7 @@
         template: Handlebars.compile($('#tpl_thread').html()),
         
         render: function() {
-            $(this.el).html(this.template(this.model.toJSON()));
-            return $(this.el).html();
+            return $(this.el).html(this.template(this.model.toJSON()));
         },
         
         render_message: function(message) {
@@ -162,12 +157,6 @@
         
         events: {
             'click input[type=submit]': 'on_submit',
-        },
-        
-        on_keypress: function(e) {
-            if(e.keyCode === 13) {
-                this.on_submit(e);
-            }
         },
         
         on_submit: function(e) {
