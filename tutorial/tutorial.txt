@@ -33,6 +33,14 @@ The Application
 
 To demonstrate how Backbone-relational allows you to define relationships between models, and how to sync the data with the server in this case, we're going to look at a simple forum application. It should allow to create forum threads (topics) and list the threads that have been created, as well as post messages in each thread. 
 
+![Threads List](./img/screenshot1.png "Threads list")
+
+Fig 1 - Threads list
+
+![Contents of a thread](./img/screenshot2.png "Content of a thread")
+
+Fig 2 - Contents of a thread
+
 ### Models Data Structure
 
 Although simple enough for the scope of this tutorial, the fact that each thread should be able to contain several messages is a good use case for Backbone-relational - one of those fairly common situation where you want to create a one-to-many relationship between two models. 
