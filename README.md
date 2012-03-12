@@ -18,7 +18,7 @@ However, when I recently started to learn about Backbone, I realized it doesn't 
 
 If you're reading this, you've probably found out about backbone-relational after reading a few threads. But the documentation is sparse, and it's hard to see how to use it practically. How do you structure your views to represent the relations between models? How do you update or push relational models to their corresponding REST APIs?
 
-[Read the full tutorial...][Tutorial]
+[Read the full tutorial - Backbone-relational, Nested Models With Backbone.js][Tutorial]
 
 [Tutorial]: http://antoviaque.org/docs/tutorials/backbone-relational-tutorial/
 
