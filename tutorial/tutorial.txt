@@ -61,7 +61,7 @@ The application is available via git, if you don't want to bother copy-pasting :
 
     $ git clone git://github.com/antoviaque/backbone-relational-tutorial.git
 
-A sample implementation of the web service providing the REST interfaces is provided in the tutorial code. The server side is out of the scope of this tutorial, so I won't say much about it. If you're interested in learning more on this part, there are a lot of resources about [Node.js][Node.js Tutorials], [Restify][Restify Documentation], [MongoDB][MongoDB Tutorial], [Mongoose][Mongoose Tutorial] and [Nginx][Nginx Tutorial] you can refer to.
+A sample implementation of the web service providing the REST interfaces is provided in the tutorial code. The server side is out of the scope of this tutorial, so I won't say much about it. If you're interested in learning more on this part, there are a lot of resources about [Node.js][Node.js Tutorials], [Restify][Restify Documentation], [MongoDB][MongoDB Tutorial] and [Mongoose][Mongoose Tutorial] you can refer to.
 
 To get the server-side to work, you need to install [Node.js][Node.js] (tested on 0.6.12), either from a [package manager][Installing Node.js via a package manager], or from source:
 
@@ -86,24 +86,6 @@ The node.js dependencies are already included in the node_modules/ directory, so
     $ node app
 
 It will start a node instance on the port 3001.
-
-Since node/restify only serves the API, you'll need to serve the client files separately (HTML, JS, CSS & images). A good choice for this is nginx. On a Debian/Ubuntu system:
-
-    $ sudo apt-get install nginx
-    $ sudo cp conf/nginx.conf /etc/nginx/sites-enabled/sample-forum
-    $ sudo gvim /etc/nginx/sites-enables/sample-forum
-
-Edit the following line to point to the location of your local copy of the tutorial repository:
-
-    alias /home/antoviaque/prog/backbone-relational-tutorial/static/;
-
-Be sure to point to the `static/` subdirectory, where the `index.html` file resides.
-
-Then start nginx:
-
-    $ sudo /etc/init.d/nginx start
-
-nginx will bind to the port 3000. It will then serve:
 
 * The `static/` subdirectory on the root folder (loading `index.html` when you access `http://localhost:3000/` or any URL starting with `http://localhost:3000/thread/`);
 * Proxy requests made to any URL starting with `http://localhost:3000/api` to the node server at `http://localhost:3001/`
@@ -546,7 +528,6 @@ This tutorial and the sample program are distributed in the hope that it will be
 [MongoDB]:                      http://www.mongodb.org/
 [MongoDB Tutorial]:             http://www.mongodb.org/display/DOCS/Tutorial
 [Mongoose Tutorial]:            http://stackoverflow.com/questions/6319899/any-good-tutorial-for-mongoose-with-node-js
-[Nginx Tutorial]:               http://library.linode.com/web-servers/nginx/configuration/basic
 [HandleBars]:                   http://handlebarsjs.com/
 [Underscore]:                   http://documentcloud.github.com/underscore/
 [Project Page]:                 https://github.com/antoviaque/backbone-relational-tutorial
