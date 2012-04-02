@@ -77,9 +77,13 @@ Then install [MongoDB][MongoDB] - on a Debian/Ubuntu:
     $ sudo apt-get install mongodb-server
     $ sudo /etc/init.d/mongodb start
 
+Use NPM to checkout the required packages
+
+    $ npm install
+
 The node.js dependencies are already included in the node_modules/ directory, so all you should need once Node and mongodb are installed is to run:
 
-    $ node ./app.js
+    $ node app
 
 It will start a node instance on the port 3001.
 

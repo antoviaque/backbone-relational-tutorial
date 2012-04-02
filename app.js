@@ -19,17 +19,19 @@
 
 // Imports /////////////////////////////////////////////////////
 
-var restify = require('restify');
-var Logger = require('bunyan');
+var restify = require('restify')
+  , Logger = require('bunyan')
+  , mime = require('mime')
+  , path = require('path')
+  , filed = require('filed');
 
 
 // Database ////////////////////////////////////////////////////
 
-mongoose = require('mongoose');
-db = mongoose.connect('mongodb://localhost/forum');
-
-Thread = require('./models.js').Thread(db);
-Message = require('./models.js').Message(db);
+var mongoose = require('mongoose')
+  , db = mongoose.connect('mongodb://localhost/forum')
+  , Thread = require('./models.js').Thread(db)
+  , Message = require('./models.js').Message(db);
 
 // Views ///////////////////////////////////////////////////////
 
@@ -98,19 +100,19 @@ function post_message(req, res, next) {
 
 // Server /////////////////////////////////////////////////////
 
-server = restify.createServer();
+var server = restify.createServer();
 
-server.use(restify.acceptParser(server.acceptable));
-server.use(restify.authorizationParser());
-server.use(restify.dateParser());
-server.use(restify.queryParser({ mapParams: false }));
-server.use(restify.bodyParser({ mapParams: false }));
-server.use(restify.throttle({
-  burst: 10,
-  rate: 1,
-  ip: false,
-  xff: true,
-}));
+server.use(restify.acceptParser(server.acceptable))
+  .use(restify.authorizationParser())
+  .use(restify.dateParser())
+  .use(restify.queryParser({ mapParams: false }))
+  .use(restify.bodyParser({ mapParams: false }))
+  .use(restify.throttle({
+    burst: 10,
+    rate: 1,
+    ip: false,
+    xff: true,
+  }));
 
 // Logging
 server.on('after', restify.auditLogger({
@@ -131,6 +133,39 @@ server.post('/api/thread/', post_thread);
 
 // Message
 server.post('/api/message/', post_message);
+
+// Static Content /////////////////////////////////////////////
+
+function serve(req, res, next) {
+  console.log(req.path);
+  var fname
+    , log = req.log;
+  if(req.path == '/') {
+    fname = path.normalize('./static/index.html');
+  } else {
+    fname = path.normalize('./static' + req.path);
+  }
+  console.log('test');
+  console.log(req.path);
+
+  log.debug('GET %s maps to %s', req.path, fname);
+
+  /* JSSTYLED */
+  if (!/^static\/?.*/.test(fname))
+      return next(new NotAuthorizedError());
+
+  res.contentType = mime.lookup(fname);
+  var f = filed(fname);
+  f.pipe(res);
+  f.on('end', function () {
+      return next(false);
+  });
+
+  return false;
+}
+
+server.get('/', serve);
+server.get(/(\/img\/|\/js\/|\/css\/)\S+/, serve);
 
 // Run ////////////////////////////////////////////////////////
 
