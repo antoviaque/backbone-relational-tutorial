@@ -338,7 +338,7 @@ Note that the thread template doesn't attempt to represent the thread's messages
 
 Here, we give the visitor the ability to post a new message in the current thread. We monitor clicks on the submit button, retreive the data the user entered using jQuery selectors (`this.$('.class')` is a shortcut for `$('.class', this.el)`), instantiate a new `Message` object with the user data, and get Backbone to send it to the API with the `save()` method. This will send the data to `/api/message` as a POST request. The `message.thread` attribute will be set to the value of `thread._id`, to let the server know which thread to add the message to.
 
-Since we're adding a new message to `thread.messages`, Backbone-relational will trigger the "messages:add" event, and the new message will get automatically inserted in the DOM via the `render_message()` method - no extra effort required!
+Since we're adding a new message to `thread.messages`, Backbone-relational will trigger the "add:messages" event, and the new message will get automatically inserted in the DOM via the `render_message()` method - no extra effort required!
 
 ### MessageView
 
