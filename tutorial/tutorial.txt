@@ -173,7 +173,7 @@ The REST interface on the server is at `/api/thread/`, and allows to GET a `thre
 
 The `messages` attribute contains a list of all the messages contained in the thread. The `message`s objects are expanded (it's not just a reference to their ids), to allow to get the whole content of a thread in one request. 
 
-Django-relational will automatically assign each of the array elements of the `message` attribute to a separate `Message` object, and set the reverse reference (`message.thread`) to the value of the `thread._id` attribute (here, "456").
+Backbone-relational will automatically assign each of the array elements of the `message` attribute to a separate `Message` object, and set the reverse reference (`message.thread`) to the value of the `thread._id` attribute (here, "456").
 
 #### REST API - POST /api/thread/
 

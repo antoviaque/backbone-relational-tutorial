@@ -15,487 +15,426 @@
 
 <body>
 
-<h1>Backbone-relational Tutorial - Nested Models With Backbone.js</h1>
-
-<h2>Introduction</h2>
-
-<h3>Backbone.js</h3>
-
+<h1 id="backbone-relational-tutorial-nested-models-with-backbonejs">Backbone-relational Tutorial - Nested Models With Backbone.js</h1>
+<h2 id="introduction">Introduction</h2>
+<h3 id="backbonejs">Backbone.js</h3>
 <p>Backbone.js allows to implement the whole MVC pattern on the client, leaving the server to do what he knows best: exposing a set of well-defined REST interfaces, which the client queries when he needs to fetch or update some information. No need to split the HTML rendering between the server templates and the client-side javascript. </p>
-
-<p>It&#39;s not only cleaner, it&#39;s also an excellent architecture to make responsive applications. Less information needs to be exchanged with the server - the formatting (views and controllers) being on the client, you only need to exchange the data being manipulated on the REST interfaces. </p>
-
+<p>It's not only cleaner, it's also an excellent architecture to make responsive applications. Less information needs to be exchanged with the server - the formatting (views and controllers) being on the client, you only need to exchange the data being manipulated on the REST interfaces. </p>
 <p>No full page reload - the server sends a static HTML file upon the first request, then the JS client handles the interaction with the user, only remodeling the portions of the DOM that changes between pages. And, better still, Backbone.js takes care of a large part of the work required to synchronize data with the server. Sweet!</p>
-
-<h3>Backbone-relational</h3>
-
-<p>However, when I recently started to learn about Backbone, I realized it doesn&#39;t help to handle relationships between models. Most non-trivial applications need this - forum threads each have a series of comments, billing invoices have several items to charge for... </p>
-
-<p>If you&#39;re reading this, you&#39;ve probably found out about backbone-relational after reading a few threads. But the documentation is sparse, and it&#39;s hard to see how to use it practically. How do you structure your views to represent the relations between models? How do you update or push relational models to their corresponding REST APIs?</p>
-
-<h3>Scope of the tutorial</h3>
-
+<h3 id="backbone-relational">Backbone-relational</h3>
+<p>However, when I recently started to learn about Backbone, I realized it doesn't help to handle relationships between models. Most non-trivial applications need this - forum threads each have a series of comments, billing invoices have several items to charge for... </p>
+<p>If you're reading this, you've probably found out about backbone-relational after reading a few threads. But the documentation is sparse, and it's hard to see how to use it practically. How do you structure your views to represent the relations between models? How do you update or push relational models to their corresponding REST APIs?</p>
+<h3 id="scope-of-the-tutorial">Scope of the tutorial</h3>
 <p>This tutorial attempts to answer that - showing you, step by step, how to structure a sample application (a simplistic forum), using Backbone-relational to expose inter-dependent models from a set of REST APIs. </p>
-
-<p>Note that this not meant to be a complete tutorial on Backbone.js, it is more a practical HOWTO on how to proceed with nested relationships once you&#39;ve understood the basics. You may want to read a <a href="http://backbonetutorials.com/">Backbone.js tutorial</a> to learn about Backbone.js&#39; models, views, routers and collections. Maybe also have a quick look at the <a href="http://documentcloud.github.com/backbone/examples/todos/index.html">TODO sample application</a> to get a feel of how code based on Backbone looks like - it is simpler as it doesn&#39;t use relational model and doesn&#39;t attempt to synchronize with REST services.</p>
-
-<p>Another great source of information is the <a href="http://documentcloud.github.com/backbone/docs/backbone.html">source code of Backbone.js</a> itself, which is short, readable and extensively annotated. Whenever in doubt, don&#39;t hesitate to dig in.</p>
-
-<blockquote><p><em>Warning: I&#39;m new to Backbone, so don&#39;t expect a definitive resource. I merely attempted to provide the tutorial that I wish I had found when I first tried Backbone-relational. If you notice mistakes, or know better techniques than what is explained here, please leave a comment or make a push request on the <a href="https://github.com/antoviaque/backbone-relational-tutorial">project page</a>. Thanks!</em></p></blockquote>
-
-<h2>The Application</h2>
-
-<p>To demonstrate how Backbone-relational allows you to define relationships between models, and how to sync the data with the server in this case, we&#39;re going to look at a simple forum application. It should allow to create forum threads (topics) and list the threads that have been created, as well as post messages in each thread. </p>
-
-<p><img alt="Threads List" title="Threads list" src="./img/screenshot1.png"></img></p>
-
+<p>Note that this not meant to be a complete tutorial on Backbone.js, it is more a practical HOWTO on how to proceed with nested relationships once you've understood the basics. You may want to read a <a href="http://backbonetutorials.com/">Backbone.js tutorial</a> to learn about Backbone.js' models, views, routers and collections. Maybe also have a quick look at the <a href="http://documentcloud.github.com/backbone/examples/todos/index.html">TODO sample application</a> to get a feel of how code based on Backbone looks like - it is simpler as it doesn't use relational model and doesn't attempt to synchronize with REST services.</p>
+<p>Another great source of information is the <a href="http://documentcloud.github.com/backbone/docs/backbone.html">source code of Backbone.js</a> itself, which is short, readable and extensively annotated. Whenever in doubt, don't hesitate to dig in.</p>
+<blockquote>
+<p><em>Warning: I'm new to Backbone, so don't expect a definitive resource. I merely attempted to provide the tutorial that I wish I had found when I first tried Backbone-relational. If you notice mistakes, or know better techniques than what is explained here, please leave a comment or make a push request on the <a href="https://github.com/antoviaque/backbone-relational-tutorial">project page</a>. Thanks!</em></p>
+</blockquote>
+<h2 id="the-application">The Application</h2>
+<p>To demonstrate how Backbone-relational allows you to define relationships between models, and how to sync the data with the server in this case, we're going to look at a simple forum application. It should allow to create forum threads (topics) and list the threads that have been created, as well as post messages in each thread. </p>
+<p><img alt="Threads List" src="./img/screenshot1.png" title="Threads list" /></p>
 <p>Fig 1 - Threads list</p>
-
-<p><img alt="Contents of a thread" title="Content of a thread" src="./img/screenshot2.png"></img></p>
-
+<p><img alt="Contents of a thread" src="./img/screenshot2.png" title="Content of a thread" /></p>
 <p>Fig 2 - Contents of a thread</p>
-
-<h3>Models Data Structure</h3>
-
+<h3 id="models-data-structure">Models Data Structure</h3>
 <p>Although simple enough for the scope of this tutorial, the fact that each thread should be able to contain several messages is a good use case for Backbone-relational - one of those fairly common situation where you want to create a one-to-many relationship between two models. </p>
-
-<ul><li>Thread object<ul><li>Thread._id: Unique identifier for a forum thread (defined by the database, String)</li><li>Thread.title: Topic of a forum thread (String)</li><li>Thread.messages (Array): Message objects<ul><li>Message._id: Unique identifier for a message (defined by the database, String)</li><li>Message.author: Name of the message author (String)</li><li>Message.text: Body of a message</li></ul></li></ul></li></ul>
-
+<ul>
+<li>Thread object<ul>
+<li>Thread._id: Unique identifier for a forum thread (defined by the database, String)</li>
+<li>Thread.title: Topic of a forum thread (String)</li>
+<li>Thread.messages (Array): Message objects<ul>
+<li>Message._id: Unique identifier for a message (defined by the database, String)</li>
+<li>Message.author: Name of the message author (String)</li>
+<li>Message.text: Body of a message</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 <p>Backbone-relation supports other types of relationships, one-to-one and many-to-many - once you have been through this tutorial, using those other types of relationships should be straightforward. Refer to the <a href="https://github.com/PaulUithol/Backbone-relational">Backbone-relational documentation</a> for more information.</p>
-
-<h3>Getting the sample application running</h3>
-
-<p>The application is available via git, if you don&#39;t want to bother copy-pasting : )</p>
-
-<pre><code class="javascript">$ git clone git://github.com/antoviaque/backbone-relational-tutorial.git</code></pre>
-
-<p>A sample implementation of the web service providing the REST interfaces is provided in the tutorial code. The server side is out of the scope of this tutorial, so I won&#39;t say much about it. If you&#39;re interested in learning more on this part, there are a lot of resources about <a href="http://stackoverflow.com/questions/2353818/how-do-i-get-started-with-node-js">Node.js</a>, <a href="http://mcavage.github.com/node-restify/">Restify</a>, <a href="http://www.mongodb.org/display/DOCS/Tutorial">MongoDB</a> and <a href="http://stackoverflow.com/questions/6319899/any-good-tutorial-for-mongoose-with-node-js">Mongoose</a> you can refer to.</p>
-
+<h3 id="getting-the-sample-application-running">Getting the sample application running</h3>
+<p>The application is available via git, if you don't want to bother copy-pasting : )</p>
+<pre><code class="javascript">$ git clone git://github.com/antoviaque/backbone-relational-tutorial.git
+</code></pre>
+<p>A sample implementation of the web service providing the REST interfaces is provided in the tutorial code. The server side is out of the scope of this tutorial, so I won't say much about it. If you're interested in learning more on this part, there are a lot of resources about <a href="http://stackoverflow.com/questions/2353818/how-do-i-get-started-with-node-js">Node.js</a>, <a href="http://mcavage.github.com/node-restify/">Restify</a>, <a href="http://www.mongodb.org/display/DOCS/Tutorial">MongoDB</a> and <a href="http://stackoverflow.com/questions/6319899/any-good-tutorial-for-mongoose-with-node-js">Mongoose</a> you can refer to.</p>
 <p>To get the server-side to work, you need to install <a href="http://nodejs.org/">Node.js</a> (tested on 0.6.12), either from a <a href="https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager">package manager</a>, or from source:</p>
-
 <pre><code class="javascript">$ wget http://nodejs.org/dist/v0.6.12/node-v0.6.12.tar.gz
 $ tar xvzf node-v0.6.12.tar.gz
 $ cd node-v0.6.12
 $ ./configure
 $ make
-$ sudo make install</code></pre>
-
+$ sudo make install
+</code></pre>
 <p>Then install <a href="http://www.mongodb.org/">MongoDB</a> - on a Debian/Ubuntu:</p>
-
 <pre><code class="javascript">$ sudo apt-get install mongodb-server
-$ sudo /etc/init.d/mongodb start</code></pre>
-
+$ sudo /etc/init.d/mongodb start
+</code></pre>
 <p>Use NPM to checkout the required packages</p>
-
-<pre><code class="javascript">$ npm install</code></pre>
-
+<pre><code class="javascript">$ npm install
+</code></pre>
 <p>The node.js dependencies are already included in the node_modules/ directory, so all you should need once Node and mongodb are installed is to run:</p>
-
-<pre><code class="javascript">$ node app</code></pre>
-
+<pre><code class="javascript">$ node app
+</code></pre>
 <p>It will start a node instance on the port 3001.</p>
-
-<ul><li>The <code class="javascript">static/</code> subdirectory on the root folder (loading <code>index.html</code> when you access <code>http://localhost:3000/</code> or any URL starting with <code>http://localhost:3000/thread/</code>);</li><li>Proxy requests made to any URL starting with <code>http://localhost:3000/api</code> to the node server at <code>http://localhost:3001/</code></li></ul>
-
-<h3>Application structure</h3>
-
-<ul><li><code class="javascript">static/index.html</code>: Includes all the base HTML structure we&#39;ll find on all pages, along with the templates for each of the views. You&#39;ll notice that I use <a href="http://handlebarsjs.com/">Handlebars</a> as the template engine, rather than <a href="http://documentcloud.github.com/underscore/">Underscore</a>&#39;s default one, but you should be able to achieve the same results with any of the javascript templating engines around - just pick your favorite.</li><li><code>static/js/forum.js</code>: Defines a <code>$.forum</code> object, which contains all the application objects. Some developers chose to assign them to the <code>window</code> object, or define them as globals. Defining a specific array allows to isolate ours objects on a dedicated namespace.</li><li><code>app.js</code> and <code>models.js</code>: Node.js application files - serves the REST API requests and connects to the MongoDB database.</li></ul>
-
-<h2>Defining the models</h2>
-
-<p>We&#39;re defining two models, <code class="javascript">Thread</code> and <code>Message</code>, a <code>Thread</code> being able to contain multiple <code>Messages</code>.</p>
-
-<h3>Message Model</h3>
-
+<ul>
+<li>The <code class="javascript">static/</code> subdirectory on the root folder (loading <code>index.html</code> when you access <code>http://localhost:3000/</code> or any URL starting with <code>http://localhost:3000/thread/</code>);</li>
+<li>Proxy requests made to any URL starting with <code class="javascript">http://localhost:3000/api</code> to the node server at <code>http://localhost:3001/</code></li>
+</ul>
+<h3 id="application-structure">Application structure</h3>
+<ul>
+<li><code class="javascript">static/index.html</code>: Includes all the base HTML structure we'll find on all pages, along with the templates for each of the views. You'll notice that I use <a href="http://handlebarsjs.com/">Handlebars</a> as the template engine, rather than <a href="http://documentcloud.github.com/underscore/">Underscore</a>'s default one, but you should be able to achieve the same results with any of the javascript templating engines around - just pick your favorite.</li>
+<li><code class="javascript">static/js/forum.js</code>: Defines a <code>$.forum</code> object, which contains all the application objects. Some developers chose to assign them to the <code>window</code> object, or define them as globals. Defining a specific array allows to isolate ours objects on a dedicated namespace.</li>
+<li><code class="javascript">app.js</code> and <code>models.js</code>: Node.js application files - serves the REST API requests and connects to the MongoDB database.</li>
+</ul>
+<h2 id="defining-the-models">Defining the models</h2>
+<p>We're defining two models, <code class="javascript">Thread</code> and <code>Message</code>, a <code>Thread</code> being able to contain multiple <code>Messages</code>.</p>
+<h3 id="message-model">Message Model</h3>
 <pre><code class="javascript">$.forum.Message = Backbone.RelationalModel.extend({
-    urlRoot: &#39;/api/message&#39;,
-    idAttribute: &#39;_id&#39;,
-});</code></pre>
-
-<p>The <code class="javascript">Message</code> model, the most simple. Note that we&#39;re extending Backbone.RelationalModel rather than BackboneModel, to take advantage of the extra features Backbone-relational. We&#39;re just telling Backbone where to find the corresponding resource on the server (<code>urlRoot</code>), and what attribute the server is using to uniquely identify each message (<code>idAttribute</code>).</p>
-
-<h4>REST API - POST /api/message/</h4>
-
+    urlRoot: '/api/message',
+    idAttribute: '_id',
+});
+</code></pre>
+<p>The <code class="javascript">Message</code> model, the most simple. Note that we're extending Backbone.RelationalModel rather than BackboneModel, to take advantage of the extra features Backbone-relational. We're just telling Backbone where to find the corresponding resource on the server (<code>urlRoot</code>), and what attribute the server is using to uniquely identify each message (<code>idAttribute</code>).</p>
+<h4 id="rest-api-post-apimessage">REST API - POST /api/message/</h4>
 <p>The REST interface on the server is at <code class="javascript">/api/message</code>, and allows to POST a message of the following JSON format:</p>
-
 <pre><code class="javascript">{
-    &quot;author&quot;: &quot;Author Name&quot;,
-    &quot;text&quot;: &quot;The message&quot;,
-    &quot;thread&quot;: &quot;thread_id&quot;
-}</code></pre>
-
+    "author": "Author Name",
+    "text": "The message",
+    "thread": "thread_id"
+}
+</code></pre>
 <p>The <code class="javascript">thread</code> attribute will be automatically defined by Backbone-relational, and will contain the <code>_id</code> attribute of the Thread model defined below. It allows the webservice to know which thread the message belongs to.</p>
-
 <p>If the request is successful, the server returns the same object, to which it adds the unique <code class="javascript">_id</code> attribute used by the database to identify it.</p>
-
-<p>For the simple forum we&#39;re developing for this tutorial, we only need to define a <code class="javascript">POST</code> interface. It allows to add <em>new</em> <code>message</code> objects to the database - this will come handy when you&#39;ll be visiting a given thread and will want to post a reply to the initial post. We will be <code>GET</code>ting the <code>message</code> objects currently in the database from the <code>/api/thread/</code> interface defined below. If we were implementing a full-fledged application, we would define all the methods: <code>GET</code> to retreive individual <code>message</code> objects, <code>PUT</code> to update an existing <code>message</code>, <code>DELETE</code>, etc.</p>
-
-<h3>Thread Model</h3>
-
+<p>For the simple forum we're developing for this tutorial, we only need to define a <code class="javascript">POST</code> interface. It allows to add <em>new</em> <code>message</code> objects to the database - this will come handy when you'll be visiting a given thread and will want to post a reply to the initial post. We will be <code>GET</code>ting the <code>message</code> objects currently in the database from the <code>/api/thread/</code> interface defined below. If we were implementing a full-fledged application, we would define all the methods: <code>GET</code> to retreive individual <code>message</code> objects, <code>PUT</code> to update an existing <code>message</code>, <code>DELETE</code>, etc.</p>
+<h3 id="thread-model">Thread Model</h3>
 <pre><code class="javascript">$.forum.Thread = Backbone.RelationalModel.extend({
-    urlRoot: &#39;/api/thread&#39;,
-    idAttribute: &#39;_id&#39;,
+    urlRoot: '/api/thread',
+    idAttribute: '_id',
     relations: [{
         type: Backbone.HasMany,
-        key: &#39;messages&#39;,
-        relatedModel: &#39;$.forum.Message&#39;,
+        key: 'messages',
+        relatedModel: '$.forum.Message',
         reverseRelation: {
-            key: &#39;thread&#39;,
-            includeInJSON: &#39;_id&#39;,
+            key: 'thread',
+            includeInJSON: '_id',
         },
     }]
-});</code></pre>
-
+});
+</code></pre>
 <p>The <code class="javascript">relations</code> option comes from Backbone-relational, and allows to specify how the <code>Thread</code> objects relate to the <code>Message</code> objects:</p>
-
-<ul><li><code class="javascript">type: Backbone.HasMany</code>: Each <code>Thread</code> can contain references to multiple <code>Message</code>s.</li><li><code>key: &#39;messages&#39;</code>: The name of the attribute of <code>Thread</code> objects containing the external references. <code>Thread.messages</code> will contain an array of <code>Message</code>s.</li><li><code>relatedModel: &#39;$.forum.Message&#39;</code>: The model being referenced.</li><li><code>reverseRelation.key = &#39;thread&#39;</code>: The reverse reference to the <code>Thread</code> object, from each of the <code>Message</code> objects contained. For example, if <code>thread.messages = [message]</code>, then <code>message.thread</code> will contain a reference to the <code>thread</code> object.</li><li><code>reverseRelation.includeInJSON = &#39;_id&#39;</code>: Tells Backbone-relational to store the value of one of the <code>Thread</code> attributes in <code>message.thread</code>, rather than a reference to the object itself. Here, if <code>thread._id = &#39;123&#39;</code>, then <code>message.thread</code> will contain &#39;123&#39;.</li></ul>
-
-<h4>REST API - GET /api/thread/:id</h4>
-
+<ul>
+<li><code class="javascript">type: Backbone.HasMany</code>: Each <code>Thread</code> can contain references to multiple <code>Message</code>s.</li>
+<li><code class="javascript">key: 'messages'</code>: The name of the attribute of <code>Thread</code> objects containing the external references. <code>Thread.messages</code> will contain an array of <code>Message</code>s.</li>
+<li><code class="javascript">relatedModel: '$.forum.Message'</code>: The model being referenced.</li>
+<li><code class="javascript">reverseRelation.key = 'thread'</code>: The reverse reference to the <code>Thread</code> object, from each of the <code>Message</code> objects contained. For example, if <code>thread.messages = [message]</code>, then <code>message.thread</code> will contain a reference to the <code>thread</code> object.</li>
+<li><code class="javascript">reverseRelation.includeInJSON = '_id'</code>: Tells Backbone-relational to store the value of one of the <code>Thread</code> attributes in <code>message.thread</code>, rather than a reference to the object itself. Here, if <code>thread._id = '123'</code>, then <code>message.thread</code> will contain '123'.</li>
+</ul>
+<h4 id="rest-api-get-apithreadid">REST API - GET /api/thread/:id</h4>
 <p>The REST interface on the server is at <code class="javascript">/api/thread/</code>, and allows to GET a <code>thread</code> object along with all its messages by specifying its id (<code>/api/thread/456</code>), using the following JSON format:</p>
-
 <pre><code class="javascript">{
-    &quot;_id&quot;: &quot;456&quot;,
-    &quot;title&quot;: &quot;The thread title&quot;,
-    &quot;messages&quot;: [
+    "_id": "456",
+    "title": "The thread title",
+    "messages": [
         {
-            &quot;_id&quot;: &quot;123&quot;,
-            &quot;author&quot;: &quot;Author Name&quot;,
-            &quot;text&quot;: &quot;The message&quot;
+            "_id": "123",
+            "author": "Author Name",
+            "text": "The message"
         }, {
-            &quot;_id&quot;: &quot;124&quot;,
-            &quot;author&quot;: &quot;Second Author Name&quot;,
-            &quot;text&quot;: &quot;The reply to the previous message&quot;
+            "_id": "124",
+            "author": "Second Author Name",
+            "text": "The reply to the previous message"
         }
     ]
-}</code></pre>
-
-<p>The <code class="javascript">messages</code> attribute contains a list of all the messages contained in the thread. The <code>message</code>s objects are expanded (it&#39;s not just a reference to their ids), to allow to get the whole content of a thread in one request. </p>
-
-<p>Django-relational will automatically assign each of the array elements of the <code class="javascript">message</code> attribute to a separate <code>Message</code> object, and set the reverse reference (<code>message.thread</code>) to the value of the <code>thread._id</code> attribute (here, &quot;456&quot;).</p>
-
-<h4>REST API - POST /api/thread/</h4>
-
+}
+</code></pre>
+<p>The <code class="javascript">messages</code> attribute contains a list of all the messages contained in the thread. The <code>message</code>s objects are expanded (it's not just a reference to their ids), to allow to get the whole content of a thread in one request. </p>
+<p>Backbone-relational will automatically assign each of the array elements of the <code class="javascript">message</code> attribute to a separate <code>Message</code> object, and set the reverse reference (<code>message.thread</code>) to the value of the <code>thread._id</code> attribute (here, "456").</p>
+<h4 id="rest-api-post-apithread">REST API - POST /api/thread/</h4>
 <p>The interface also allows to POST a new <code class="javascript">thread</code> to add to the database, by sending the following JSON structure:</p>
-
 <pre><code class="javascript">{
-    &quot;title&quot;: &quot;My new thread&quot;,
-    &quot;messages&quot;: []
-}</code></pre>
-
-<p>If successful, the server returns the same object, to which it adds the unique &#39;_id&#39; attribute used by the database to identify it.</p>
-
-<h3>List of threads</h3>
-
-<p>The <code class="javascript">Thread</code> and <code>Message</code> models, along with their associated APIs server-side, allow us to keep track of all the messages in a given thread, and to post new threads and messages. However, we&#39;re still missing one important piece of informations - how do we know which threads are already in the forum? We want to present a list of all the forum threads to the visitors.</p>
-
+    "title": "My new thread",
+    "messages": []
+}
+</code></pre>
+<p>If successful, the server returns the same object, to which it adds the unique '_id' attribute used by the database to identify it.</p>
+<h3 id="list-of-threads">List of threads</h3>
+<p>The <code class="javascript">Thread</code> and <code>Message</code> models, along with their associated APIs server-side, allow us to keep track of all the messages in a given thread, and to post new threads and messages. However, we're still missing one important piece of informations - how do we know which threads are already in the forum? We want to present a list of all the forum threads to the visitors.</p>
 <p>This is where collections come in - they allow to query the database for a set of objects (here, all the forum threads), a bit like the way a <code class="javascript">Thread</code> contains a reference to a set of <code>Message</code>s.</p>
-
 <pre><code class="javascript">$.forum.ThreadCollection = Backbone.Collection.extend({
-    url: &#39;/api/thread&#39;,
+    url: '/api/thread',
     model: $.forum.Thread,
-})</code></pre>
-
-<h4>REST API - GET /api/thread/</h4>
-
+})
+</code></pre>
+<h4 id="rest-api-get-apithread">REST API - GET /api/thread/</h4>
 <p>The collection will <code class="javascript">GET /api/thread/</code> for the array of all the forum threads:</p>
-
 <pre><code class="javascript">[
     {
-        &quot;_id&quot;: &quot;456&quot;,
-        &quot;title&quot;: &quot;The thread title&quot;,
-        &quot;messages&quot;: [
+        "_id": "456",
+        "title": "The thread title",
+        "messages": [
             {
-                &quot;_id&quot;: &quot;123&quot;,
-                &quot;author&quot;: &quot;Author Name&quot;,
-                &quot;text&quot;: &quot;The message&quot;
+                "_id": "123",
+                "author": "Author Name",
+                "text": "The message"
             }, {
-                &quot;_id&quot;: &quot;124&quot;,
-                &quot;author&quot;: &quot;Second Author Name&quot;,
-                &quot;text&quot;: &quot;The reply to the previous message&quot;
+                "_id": "124",
+                "author": "Second Author Name",
+                "text": "The reply to the previous message"
             }
         ]
     }, {
-        &quot;_id&quot;: &quot;457&quot;,
-        &quot;title&quot;: &quot;My new thread&quot;,
-        &quot;messages&quot;: []
+        "_id": "457",
+        "title": "My new thread",
+        "messages": []
     }
-]</code></pre>
-
-<h2>The Router</h2>
-
+]
+</code></pre>
+<h2 id="the-router">The Router</h2>
 <p>Now that we have our models, we can start looking at doing something with the data they contain. In our simple forum, we serve only two different types of pages:</p>
-
-<ul><li>The <em>list of threads</em>, which is also be the homepage, available at <code class="javascript">http://localhost:3000/</code> (<code>show_thread_list</code>)</li><li>The content of a <em>single thread</em>, available at <code>http://localhost:3000/thread/&lt;id_of_the_thread&gt;/</code> (<code>show_thread</code>)</li></ul>
-
+<ul>
+<li>The <em>list of threads</em>, which is also be the homepage, available at <code class="javascript">http://localhost:3000/</code> (<code>show_thread_list</code>)</li>
+<li>The content of a <em>single thread</em>, available at <code class="javascript">http://localhost:3000/thread/&lt;id_of_the_thread&gt;/</code> (<code>show_thread</code>)</li>
+</ul>
 <p>The URL router, which binds URLs (routes) to views, is:</p>
-
 <pre><code class="javascript">$.forum.Router = Backbone.Router.extend({
     routes: {
-        &quot;&quot;: &quot;show_thread_list&quot;,
-        &quot;thread/:_id/&quot;: &quot;show_thread&quot;,
+        "": "show_thread_list",
+        "thread/:_id/": "show_thread",
     },
 
     show_thread_list: function() {
         var thread_collection = new $.forum.ThreadCollection();
-        var thread_list_view = new $.forum.ThreadListView({el: $(&#39;#content&#39;), model: thread_collection });
+        var thread_list_view = new $.forum.ThreadListView({el: $('#content'), model: thread_collection });
         thread_collection.fetch();
     },
 
     show_thread: function(_id) {
         var thread = new $.forum.Thread({_id: _id});
-        var thread_view = new $.forum.ThreadView({el: $(&#39;#content&#39;), model: thread});
+        var thread_view = new $.forum.ThreadView({el: $('#content'), model: thread});
         thread.fetch();
     },
 
-});</code></pre>
-
-<p>In both controller methods, the approach is similar (note that you don&#39;t need to understand every detail just yet - just keep in mind the way requests are processed):</p>
-
-<ol><li>Instantiate the model (or the collection, since a collection is simply a way to refer to several models simulteanously) corresponding to the current URL/view.</li><li>Instantiate a view, which will use the model from 1) to produce its HTML representation. It will insert the result inside the DOM element we provide (<code class="javascript">el: $(&#39;#content&#39;)</code>).</li><li>Get the model/collection to retreive the data from the server corresponding to its instantiation in 1). Doing so will trigger events in the view we instantiated in 2), and cause the view to refresh itself. Note that steps 1) and 2) don&#39;t actually modify the DOM or manipulate any data from or to the server. They just instantiate objects which start to listen to events. </li></ol>
-
-<p>For example, a request to <code class="javascript">http://localhost:3000/thread/123</code> will get a <code>Thread({id: &#39;123&#39;})</code> object instantiated, which will <code>fetch()</code> its data at <code>/api/thread/123</code>. Once the server has returned the JSON data, events will be triggered on the <code>ThreadView</code> object (see below).</p>
-
-<h2>Displaying a Single Thread</h2>
-
+});
+</code></pre>
+<p>In both controller methods, the approach is similar (note that you don't need to understand every detail just yet - just keep in mind the way requests are processed):</p>
+<ol>
+<li>Instantiate the model (or the collection, since a collection is simply a way to refer to several models simulteanously) corresponding to the current URL/view.</li>
+<li>Instantiate a view, which will use the model from 1) to produce its HTML representation. It will insert the result inside the DOM element we provide (<code class="javascript">el: $('#content')</code>).</li>
+<li>Get the model/collection to retreive the data from the server corresponding to its instantiation in 1). Doing so will trigger events in the view we instantiated in 2), and cause the view to refresh itself. Note that steps 1) and 2) don't actually modify the DOM or manipulate any data from or to the server. They just instantiate objects which start to listen to events. </li>
+</ol>
+<p>For example, a request to <code class="javascript">http://localhost:3000/thread/123</code> will get a <code>Thread({id: '123'})</code> object instantiated, which will <code>fetch()</code> its data at <code>/api/thread/123</code>. Once the server has returned the JSON data, events will be triggered on the <code>ThreadView</code> object (see below).</p>
+<h2 id="displaying-a-single-thread">Displaying a Single Thread</h2>
 <p>A single thread can contain multiple messages. We thus need to define two different views - one to represent the Thread, for example its title (<code class="javascript">ThreadView</code>), one to represent each of the messages it contains (<code>MessageView</code>).</p>
+<h3 id="threadview">ThreadView</h3>
+<h4 id="template">Template</h4>
+<pre><code class="javascript">&lt;script type="text/template" id="tpl_thread"&gt;
+    &lt;h2 class="centered"&gt;Thread - "{{title}}"&lt;/h2&gt;
 
-<h3>ThreadView</h3>
-
-<h4>Template</h4>
-
-<pre><code class="javascript">&lt;script type=&quot;text/template&quot; id=&quot;tpl_thread&quot;&gt;
-    &lt;h2 class=&quot;centered&quot;&gt;Thread - &quot;{{title}}&quot;&lt;/h2&gt;
-
-    &lt;div class=&quot;message_list&quot;&gt;&lt;/div&gt;
+    &lt;div class="message_list"&gt;&lt;/div&gt;
 
     &lt;h2&gt;New message&lt;/div&gt;
     &lt;ul&gt;
-        &lt;li&gt;Author: &lt;input class=&quot;new_message_author&quot; type=&quot;text&quot; /&gt;&lt;/li&gt;
-        &lt;li&gt;Text: &lt;textarea class=&quot;new_message_text&quot; /&gt;&lt;/li&gt;
+        &lt;li&gt;Author: &lt;input class="new_message_author" type="text" /&gt;&lt;/li&gt;
+        &lt;li&gt;Text: &lt;textarea class="new_message_text" /&gt;&lt;/li&gt;
     &lt;/ul&gt;
-    &lt;input type=&quot;submit&quot; value=&quot;Post message&quot; /&gt;
+    &lt;input type="submit" value="Post message" /&gt;
     &lt;/ul&gt;
-    &lt;div class=&quot;error_message&quot;&gt;&lt;/div&gt;
-&lt;/script&gt;</code></pre>
-
-<h4>View</h4>
-
+    &lt;div class="error_message"&gt;&lt;/div&gt;
+&lt;/script&gt;
+</code></pre>
+<h4 id="view">View</h4>
 <pre><code class="javascript">$.forum.ThreadView = Backbone.View.extend({
-    tagName: &#39;div&#39;,
+    tagName: 'div',
 
-    className: &#39;thread_view&#39;,</code></pre>
-
-<p>The HTML representation of the thread will be contained in a <code class="javascript">&lt;div class=&quot;thread_view&quot;&gt;&lt;/div&gt;</code> container.</p>
-
+    className: 'thread_view',
+</code></pre>
+<p>The HTML representation of the thread will be contained in a <code class="javascript">&lt;div class="thread_view"&gt;&lt;/div&gt;</code> container.</p>
 <pre><code class="javascript">    initialize: function(){
-        _.bindAll(this, &#39;render&#39;, &#39;render_message&#39;, &#39;on_submit&#39;);
-        this.model.bind(&#39;change&#39;, this.render);
-        this.model.bind(&#39;reset&#39;, this.render);
-        this.model.bind(&#39;add:messages&#39;, this.render_message); 
-    },</code></pre>
-
+        _.bindAll(this, 'render', 'render_message', 'on_submit');
+        this.model.bind('change', this.render);
+        this.model.bind('reset', this.render);
+        this.model.bind('add:messages', this.render_message); 
+    },
+</code></pre>
 <p><code class="javascript">bindAll()</code> comes from <a href="http://documentcloud.github.com/underscore/">Underscore</a>, and allows to make sure that the specified methods are always invoked with <code>this</code> pointing to the current object.</p>
-
 <p><code class="javascript">this.model</code> points to the <code>{model: ...}</code> attribute passed when ThreadView is initialized in the router. It contains a reference to the model the view is representing, and allows us to listen to events from the model:</p>
+<ul>
+<li>When the model <code class="javascript">change</code>s or is <code>reset</code>, we redraw the view entirely (<code>this.render</code>)</li>
+<li>
+<p>When a new message is added to the thread, add it on the DOM. This happens when a new message is added to the <code class="javascript">thread.messages</code> array, or when a new message is saved with a <code>message.thread</code> set to the same value as the <code>thread._id</code>.</p>
+<pre><code class="javascript">template: Handlebars.compile($('#tpl_thread').html()),
 
-<ul><li>When the model <code class="javascript">change</code>s or is <code>reset</code>, we redraw the view entirely (<code>this.render</code>)</li><li><p>When a new message is added to the thread, add it on the DOM. This happens when a new message is added to the <code>thread.messages</code> array, or when a new message is saved with a <code>message.thread</code> set to the same value as the <code>thread._id</code>.</p><pre><code>template: Handlebars.compile($(&#39;#tpl_thread&#39;).html()),</code></pre><p>    render: function() {
-        return $(this.el).html(this.template(this.model.toJSON()));
-    },</p></li></ul>
-
-<p>Use <code class="javascript">#tpl_thread</code> as the template. The model&#39;s attributes are passed as the current context to Handlebars, which replaces the corresponding variables in the <code>#tpl_thread</code> template and returns the resulting HTML. This HTML is inserted in the <code>{el: ...}</code> element via jQuery (cf the route, <code>el</code> here is <code>$(#content&#39;)</code>).</p>
-
-<p>Note that the thread template doesn&#39;t attempt to represent the thread&#39;s messages. Backbone-relational triggers the &#39;add:messages&#39; event on the model for each contained message, every time the model is <code class="javascript">fetch()</code>&#39;ed. When the router calls <code>thread.fetch()</code>, Backbone will first trigger the &#39;reset&#39; event, which will run the <code>render()</code> method and get the <code>#tpl_thread</code> inserted. Then Backbone-relational will trigger the &#39;add:messages&#39; event, and call <code>render_message()</code> for each of the messages the thread contains:</p>
-
+render: function() {
+    return $(this.el).html(this.template(this.model.toJSON()));
+},
+</code></pre>
+</li>
+</ul>
+<p>Use <code class="javascript">#tpl_thread</code> as the template. The model's attributes are passed as the current context to Handlebars, which replaces the corresponding variables in the <code>#tpl_thread</code> template and returns the resulting HTML. This HTML is inserted in the <code>{el: ...}</code> element via jQuery (cf the route, <code>el</code> here is <code>$(#content')</code>).</p>
+<p>Note that the thread template doesn't attempt to represent the thread's messages. Backbone-relational triggers the 'add:messages' event on the model for each contained message, every time the model is <code class="javascript">fetch()</code>'ed. When the router calls <code>thread.fetch()</code>, Backbone will first trigger the 'reset' event, which will run the <code>render()</code> method and get the <code>#tpl_thread</code> inserted. Then Backbone-relational will trigger the 'add:messages' event, and call <code>render_message()</code> for each of the messages the thread contains:</p>
 <pre><code class="javascript">    render_message: function(message) {
         var message_view = new $.forum.MessageView({model: message});
-        this.$(&#39;div.message_list&#39;).append($(message_view.render()));
-    },</code></pre>
-
-<p><code class="javascript">message</code> will be an instance of the <code>Message</code> model. We use it to instantiate a <code>MessageView</code> view, like we did in the router for the <code>ThreadView</code>. The main difference is that Backbone-relational has already retreived the messages data, so we don&#39;t need to <code>fetch()</code> it. The messages data was contained in the response from the API request to get the thread data (<code>/api/thread/123</code> - see <em>&quot;REST API - GET /api/thread/:id&quot;</em> above).</p>
-
+        this.$('div.message_list').append($(message_view.render()));
+    },
+</code></pre>
+<p><code class="javascript">message</code> will be an instance of the <code>Message</code> model. We use it to instantiate a <code>MessageView</code> view, like we did in the router for the <code>ThreadView</code>. The main difference is that Backbone-relational has already retreived the messages data, so we don't need to <code>fetch()</code> it. The messages data was contained in the response from the API request to get the thread data (<code>/api/thread/123</code> - see <em>"REST API - GET /api/thread/:id"</em> above).</p>
 <pre><code class="javascript">    events: {
-        &#39;click input[type=submit]&#39;: &#39;on_submit&#39;,
+        'click input[type=submit]': 'on_submit',
     },
 
     on_submit: function(e) {
-        var new_message = new $.forum.Message({author: this.$(&#39;.new_message_author&#39;).val(), text: this.$(&#39;.new_message_text&#39;).val(), thread: this.model});
+        var new_message = new $.forum.Message({author: this.$('.new_message_author').val(), text: this.$('.new_message_text').val(), thread: this.model});
         new_message.save();
     },
-});</code></pre>
-
-<p>Here, we give the visitor the ability to post a new message in the current thread. We monitor clicks on the submit button, retreive the data the user entered using jQuery selectors (<code class="javascript">this.$(&#39;.class&#39;)</code> is a shortcut for <code>$(&#39;.class&#39;, this.el)</code>), instantiate a new <code>Message</code> object with the user data, and get Backbone to send it to the API with the <code>save()</code> method. This will send the data to <code>/api/message</code> as a POST request. The <code>message.thread</code> attribute will be set to the value of <code>thread._id</code>, to let the server know which thread to add the message to.</p>
-
-<p>Since we&#39;re adding a new message to <code class="javascript">thread.messages</code>, Backbone-relational will trigger the &quot;messages:add&quot; event, and the new message will get automatically inserted in the DOM via the <code>render_message()</code> method - no extra effort required!</p>
-
-<h3>MessageView</h3>
-
-<h4>Template</h4>
-
-<pre><code class="javascript">&lt;script type=&quot;text/template&quot; id=&quot;tpl_message&quot;&gt;
-    &lt;div class=&quot;message&quot;&gt;
-        &lt;div class=&quot;message_author&quot;&gt;By: {{author}}&lt;/div&gt;
-        &lt;div class=&quot;message_text&quot;&gt;{{text}}&lt;/div&gt;
+});
+</code></pre>
+<p>Here, we give the visitor the ability to post a new message in the current thread. We monitor clicks on the submit button, retreive the data the user entered using jQuery selectors (<code class="javascript">this.$('.class')</code> is a shortcut for <code>$('.class', this.el)</code>), instantiate a new <code>Message</code> object with the user data, and get Backbone to send it to the API with the <code>save()</code> method. This will send the data to <code>/api/message</code> as a POST request. The <code>message.thread</code> attribute will be set to the value of <code>thread._id</code>, to let the server know which thread to add the message to.</p>
+<p>Since we're adding a new message to <code class="javascript">thread.messages</code>, Backbone-relational will trigger the "messages:add" event, and the new message will get automatically inserted in the DOM via the <code>render_message()</code> method - no extra effort required!</p>
+<h3 id="messageview">MessageView</h3>
+<h4 id="template_1">Template</h4>
+<pre><code class="javascript">&lt;script type="text/template" id="tpl_message"&gt;
+    &lt;div class="message"&gt;
+        &lt;div class="message_author"&gt;By: {{author}}&lt;/div&gt;
+        &lt;div class="message_text"&gt;{{text}}&lt;/div&gt;
     &lt;/div&gt;
-&lt;/script&gt;</code></pre>
-
-<h4>View</h4>
-
+&lt;/script&gt;
+</code></pre>
+<h4 id="view_1">View</h4>
 <p>We used a <code class="javascript">MessageView</code> view above to represent individual messages - we thus need to define it to let Backbone know which template to use:</p>
-
 <pre><code class="javascript">$.forum.MessageView = Backbone.View.extend({
-    tagName: &#39;div&#39;,
+    tagName: 'div',
 
-    className: &#39;message_view&#39;,
+    className: 'message_view',
 
     initialize: function(){
-        _.bindAll(this, &#39;render&#39;);
-        this.model.bind(&#39;change&#39;, this.render);
+        _.bindAll(this, 'render');
+        this.model.bind('change', this.render);
     },
 
-    template: Handlebars.compile($(&#39;#tpl_message&#39;).html()),
+    template: Handlebars.compile($('#tpl_message').html()),
 
     render: function() {
         return $(this.el).html(this.template(this.model.toJSON()));
     },
-});</code></pre>
+});
+</code></pre>
+<h2 id="displaying-a-list-of-all-threads">Displaying a List of All Threads</h2>
+<p>This is very similar to displaying a single thread - instead of having a thread model containing a list of messages, we have a collection containining a list of all the threads. So we'll need one view for the collection, <code class="javascript">ThreadListView</code>, and one view for each of the threads, <code>ThreadSummaryView</code>. We don't need to display individual messages, but we'll still use them inside of the <code>ThreadSummaryView</code> to show a message count for the whole thread.</p>
+<h3 id="threadlistview">ThreadListView</h3>
+<h4 id="template_2">Template</h4>
+<pre><code class="javascript">&lt;script type="text/template" id="tpl_thread_list"&gt;
+    &lt;h2 class="centered"&gt;Threads&lt;/h2&gt;
 
-<h2>Displaying a List of All Threads</h2>
-
-<p>This is very similar to displaying a single thread - instead of having a thread model containing a list of messages, we have a collection containining a list of all the threads. So we&#39;ll need one view for the collection, <code class="javascript">ThreadListView</code>, and one view for each of the threads, <code>ThreadSummaryView</code>. We don&#39;t need to display individual messages, but we&#39;ll still use them inside of the <code>ThreadSummaryView</code> to show a message count for the whole thread.</p>
-
-<h3>ThreadListView</h3>
-
-<h4>Template</h4>
-
-<pre><code class="javascript">&lt;script type=&quot;text/template&quot; id=&quot;tpl_thread_list&quot;&gt;
-    &lt;h2 class=&quot;centered&quot;&gt;Threads&lt;/h2&gt;
-
-    &lt;ul class=&quot;thread_list&quot;&gt;&lt;/ul&gt;
+    &lt;ul class="thread_list"&gt;&lt;/ul&gt;
 
     &lt;h2&gt;New Thread&lt;/h2&gt;
     &lt;ul&gt;
-        &lt;li&gt;Title: &lt;input type=&quot;text&quot; class=&quot;new_thread_title&quot; /&gt;&lt;/li&gt;
-        &lt;li&gt;Author: &lt;input class=&quot;new_message_author&quot; type=&quot;text&quot; /&gt;&lt;/li&gt;
-        &lt;li&gt;Message: &lt;textarea class=&quot;new_message_text&quot; /&gt;&lt;/li&gt;
-        &lt;li&gt;&lt;input type=&quot;submit&quot; class=&quot;new_thread_submit&quot; value=&quot;Create thread&quot; /&gt;&lt;/li&gt;
+        &lt;li&gt;Title: &lt;input type="text" class="new_thread_title" /&gt;&lt;/li&gt;
+        &lt;li&gt;Author: &lt;input class="new_message_author" type="text" /&gt;&lt;/li&gt;
+        &lt;li&gt;Message: &lt;textarea class="new_message_text" /&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;input type="submit" class="new_thread_submit" value="Create thread" /&gt;&lt;/li&gt;
     &lt;/ul&gt;
-    &lt;div class=&quot;error_message&quot;&gt;&lt;/div&gt;
-&lt;/script&gt;</code></pre>
-
-<h4>View</h4>
-
+    &lt;div class="error_message"&gt;&lt;/div&gt;
+&lt;/script&gt;
+</code></pre>
+<h4 id="view_2">View</h4>
 <pre><code class="javascript">$.forum.ThreadListView = Backbone.View.extend({
-    tagName: &#39;div&#39;,
+    tagName: 'div',
 
-    className: &#39;thread_list_view&#39;,
+    className: 'thread_list_view',
 
     initialize: function(){
-        _.bindAll(this, &#39;render&#39;, &#39;render_thread_summary&#39;, &#39;on_submit&#39;, &#39;on_thread_created&#39;, &#39;on_error&#39;);
-        this.model.bind(&#39;reset&#39;, this.render); 
-        this.model.bind(&#39;change&#39;, this.render); 
-        this.model.bind(&#39;add&#39;, this.render_thread_summary); 
-    },</code></pre>
-
+        _.bindAll(this, 'render', 'render_thread_summary', 'on_submit', 'on_thread_created', 'on_error');
+        this.model.bind('reset', this.render); 
+        this.model.bind('change', this.render); 
+        this.model.bind('add', this.render_thread_summary); 
+    },
+</code></pre>
 <p>Although the view renders a collection and not a single model, we attach the collection object to the <code class="javascript">this.model</code> attribute. This is because Backbone automatically sets the <code>model</code> attribute of a view when a <code>{model: xxx}</code> option is passed when the view is instantiated. If we passed a <code>{collection: xxx}</code> instead in the router method, we would have to access the attribute at <code>this.options.collection</code>.</p>
-
-<pre><code class="javascript">    template: Handlebars.compile($(&#39;#tpl_thread_list&#39;).html()),
+<pre><code class="javascript">    template: Handlebars.compile($('#tpl_thread_list').html()),
 
     render: function() {
         $(this.el).html(this.template());
         this.model.forEach(this.render_thread_summary);
         return $(this.el).html();
-    },</code></pre>
-
-<p>One notable difference in the way collections and relational models behave regarding events is that collections don&#39;t trigger the &#39;add&#39; event when the collection is initially <code class="javascript">fetch()</code>&#39;ed. We thus have to call the <code>render_thread_summary()</code> manually in the <code>render()</code> method, we can&#39;t assume <code>render_thread_summary()</code> will be called after <code>render()</code> every time the collection is rendered.</p>
-
+    },
+</code></pre>
+<p>One notable difference in the way collections and relational models behave regarding events is that collections don't trigger the 'add' event when the collection is initially <code class="javascript">fetch()</code>'ed. We thus have to call the <code>render_thread_summary()</code> manually in the <code>render()</code> method, we can't assume <code>render_thread_summary()</code> will be called after <code>render()</code> every time the collection is rendered.</p>
 <pre><code class="javascript">    render_thread_summary: function(thread) {
         var thread_summary_view = new $.forum.ThreadSummaryView({model: thread});
-        this.$(&#39;ul.thread_list&#39;).prepend($(thread_summary_view.render()));
+        this.$('ul.thread_list').prepend($(thread_summary_view.render()));
     },
 
     events: {
-        &#39;click input[type=submit]&#39;: &#39;on_submit&#39;,
-    },</code></pre>
-
+        'click input[type=submit]': 'on_submit',
+    },
+</code></pre>
 <p>This is also similar to the <code class="javascript">ThreadView</code>. We append the HTML from the <code>ThreadSummaryView</code> of each of the threads to the DOM, and monitor clicks on the submit button, on the form allowing a visitor to create a new thread and post a first message in it.</p>
-
 <pre><code class="javascript">    on_submit: function(e) {
-        var thread = new $.forum.Thread({ title: this.$(&#39;.new_thread_title&#39;).val() });
+        var thread = new $.forum.Thread({ title: this.$('.new_thread_title').val() });
         thread.save({}, { success: this.on_thread_created, error: this.on_error });
-    },</code></pre>
-
-<p>Here, however, we&#39;ll be saving two distinct objects: first we&#39;ll create the new thread, and once the thread has been created on the server, we&#39;ll add a message in it. We wait for the <code class="javascript">thread.save()</code> to complete to get the <code>thread._id</code> from the server&#39;s response:</p>
-
+    },
+</code></pre>
+<p>Here, however, we'll be saving two distinct objects: first we'll create the new thread, and once the thread has been created on the server, we'll add a message in it. We wait for the <code class="javascript">thread.save()</code> to complete to get the <code>thread._id</code> from the server's response:</p>
 <pre><code class="javascript">    on_thread_created: function(thread, response) {
         this.model.add(thread, {at: 0});
-        var message = new $.forum.Message({ author: this.$(&#39;.new_message_author&#39;).val(), text: this.$(&#39;.new_message_text&#39;).val(), thread: thread.get(&#39;_id&#39;) });
+        var message = new $.forum.Message({ author: this.$('.new_message_author').val(), text: this.$('.new_message_text').val(), thread: thread.get('_id') });
         message.save({}, { 
             success: function() {
-                $.forum.app.navigate(&#39;thread/&#39;+thread.get(&#39;_id&#39;)+&#39;/&#39;, { trigger: true });
+                $.forum.app.navigate('thread/'+thread.get('_id')+'/', { trigger: true });
             },
             error: this.on_error,
         });
-    },</code></pre>
-
-<p>The collection doesn&#39;t automatically know that the new thread should belong to the collection, we thus need to add it manually. This will trigger the <code class="javascript">render_thread_summary()</code> method, and add the new thread to the DOM.</p>
-
+    },
+</code></pre>
+<p>The collection doesn't automatically know that the new thread should belong to the collection, we thus need to add it manually. This will trigger the <code class="javascript">render_thread_summary()</code> method, and add the new thread to the DOM.</p>
 <pre><code class="javascript">    on_error: function(model, response) {
         var error = $.parseJSON(response.responseText);
-        this.$(&#39;.error_message&#39;).html(error.message);
+        this.$('.error_message').html(error.message);
     },
-});</code></pre>
-
+});
+</code></pre>
 <p>We also define an error method, to alert the user if something goes wrong. In such a case - for example a validation error - the server should return a JSON string of the following format:</p>
-
-<pre><code class="javascript">{&#39;error&#39;: &#39;Error message&#39;}</code></pre>
-
-<h3>ThreadSummaryView</h3>
-
-<p>The <code class="javascript">ThreadSummaryView</code> uses the same model as <code>ThreadView</code>, but presents it differently. Since we&#39;re showing a list of all threads, we don&#39;t need to show all the details - especially the content of the messages, even if the data itself is available in a similar manner.</p>
-
-<h4>Template</h4>
-
-<pre><code class="javascript">&lt;script type=&quot;text/template&quot; id=&quot;tpl_thread_summary&quot;&gt;
-    &lt;span class=&quot;thread_title&quot;&gt;{{title}}&lt;/span&gt; 
-    &lt;span class=&quot;thread_nb_messages&quot;&gt;{{messages.length}} messages&lt;/span&gt;
-&lt;/script&gt;</code></pre>
-
-<h4>View</h4>
-
+<pre><code class="javascript">{'error': 'Error message'}
+</code></pre>
+<h3 id="threadsummaryview">ThreadSummaryView</h3>
+<p>The <code class="javascript">ThreadSummaryView</code> uses the same model as <code>ThreadView</code>, but presents it differently. Since we're showing a list of all threads, we don't need to show all the details - especially the content of the messages, even if the data itself is available in a similar manner.</p>
+<h4 id="template_3">Template</h4>
+<pre><code class="javascript">&lt;script type="text/template" id="tpl_thread_summary"&gt;
+    &lt;span class="thread_title"&gt;{{title}}&lt;/span&gt; 
+    &lt;span class="thread_nb_messages"&gt;{{messages.length}} messages&lt;/span&gt;
+&lt;/script&gt;
+</code></pre>
+<h4 id="view_3">View</h4>
 <pre><code class="javascript">$.forum.ThreadSummaryView = Backbone.View.extend({
-    tagName: &#39;li&#39;,
+    tagName: 'li',
 
-    className: &#39;thread_summary_view&#39;,
+    className: 'thread_summary_view',
 
     initialize: function(){
-        _.bindAll(this, &#39;render&#39;, &#39;on_click&#39;);
-        this.model.bind(&#39;change&#39;, this.render);
+        _.bindAll(this, 'render', 'on_click');
+        this.model.bind('change', this.render);
     },
 
-    template: Handlebars.compile($(&#39;#tpl_thread_summary&#39;).html()),
+    template: Handlebars.compile($('#tpl_thread_summary').html()),
 
     render: function() {
         return $(this.el).html(this.template(this.model.toJSON()));
-    },</code></pre>
-
+    },
+</code></pre>
 <p>You should now be familiar with those - we get the right template, render it and insert the resulting HTML in the DOM.</p>
-
 <pre><code class="javascript">    events: {
-        &#39;click&#39;: &#39;on_click&#39;,
+        'click': 'on_click',
     },
 
     on_click: function(e) {
-        $.forum.app.navigate(&#39;thread/&#39;+this.model.get(&#39;_id&#39;)+&#39;/&#39;, {trigger: true});
+        $.forum.app.navigate('thread/'+this.model.get('_id')+'/', {trigger: true});
     },
-});</code></pre>
-
-<p>The last missing bit - allowing the visitor to click on a thread in the threads list (at <code class="javascript">&quot;/&quot;</code>), to be able to navigate to the dedicated thread page (<code>&quot;/thread/123&quot;</code>). We monitor the &#39;click&#39; event on the current view (clicks on <code>this.el</code>), and when this happen, we ask the router to change the URL. <code>{trigger: true}</code> makes the router also trigger the controller method corresponding to the new URL - here, <code>show_thread()</code>.</p>
-
-<h2>License</h2>
-
+});
+</code></pre>
+<p>The last missing bit - allowing the visitor to click on a thread in the threads list (at <code class="javascript">"/"</code>), to be able to navigate to the dedicated thread page (<code>"/thread/123"</code>). We monitor the 'click' event on the current view (clicks on <code>this.el</code>), and when this happen, we ask the router to change the URL. <code>{trigger: true}</code> makes the router also trigger the controller method corresponding to the new URL - here, <code>show_thread()</code>.</p>
+<h2 id="license">License</h2>
 <p>The text of this tutorial, aside from the code portions, is licensed under the <a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>. </p>
-
 <p>The code and graphical assets are released under the <a href="http://www.gnu.org/licenses/agpl.html">GNU Affero General Public License</a> as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</p>
-
 <p>This tutorial and the sample program are distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the <a href="http://www.gnu.org/licenses/agpl.html">GNU Affero General Public License</a> for more details.</p>
