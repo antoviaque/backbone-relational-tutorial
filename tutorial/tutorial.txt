@@ -26,7 +26,7 @@ Note that this not meant to be a complete tutorial on Backbone.js, it is more a 
 
 Another great source of information is the [source code of Backbone.js][Source Code of Backbone.js] itself, which is short, readable and extensively annotated. Whenever in doubt, don't hesitate to dig in.
 
-> _Warning: I'm new to Backbone, so don't expect a definitive resource. I merely attempted to provide the tutorial that I wish I had found when I first tried Backbone-relational. If you notice mistakes, or know better techniques than what is explained here, please leave a comment or make a push request on the [project page][Project Page]. Thanks!_
+> _Warning: I'm new to Backbone, so don't expect a definitive resource. I merely attempted to provide the tutorial that I wish I had found when I first tried Backbone-relational. If you notice mistakes, or know better techniques than what is explained here, please leave a comment or make a pull request on the [project page][Project Page]. Thanks!_
 
 The Application
 ---------------
