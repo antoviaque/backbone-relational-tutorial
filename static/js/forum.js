@@ -216,7 +216,7 @@
     
     $.forum.bootstrap = function() {
         $.forum.app = new $.forum.Router(); 
-        Backbone.history.start({pushState: true});
+        Backbone.history.start();
     };
 
 })(jQuery);

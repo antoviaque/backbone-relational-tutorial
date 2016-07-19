@@ -136,12 +136,12 @@ server.post('/api/message/', post_message);
 
 // Static Content /////////////////////////////////////////////
 
-server.get('/', restify.serveStatic({
+server.get(/\/(css|img|js)?.*/, restify.serveStatic({
   directory: './static',
   default: 'index.html'
 }));
 
-server.get(/\/?.*/, restify.serveStatic({
+server.get('/', restify.serveStatic({
   directory: './static',
   default: 'index.html'
 }));
