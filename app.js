@@ -136,38 +136,15 @@ server.post('/api/message/', post_message);
 
 // Static Content /////////////////////////////////////////////
 
-function serve(req, res, next) {
-  console.log(req.path);
-  var fname
-    , log = req.log;
-  if(req.path == '/') {
-    fname = path.normalize('./static/index.html');
-  } else {
-    fname = path.normalize('./static' + req.path);
-  }
-  console.log('test');
-  console.log(req.path);
+server.get(/\/(css|img|js)?.*/, restify.serveStatic({
+  directory: './static',
+  default: 'index.html'
+}));
 
-  log.debug('GET %s maps to %s', req.path, fname);
-
-  /* JSSTYLED */
-  if (!/^static\/?.*/.test(fname))
-      return next(new NotAuthorizedError());
-
-  res.contentType = mime.lookup(fname);
-  var f = filed(fname);
-  f.pipe(res);
-  f.on('end', function () {
-      return next(false);
-  });
-
-  return false;
-}
-
-server.get('/', serve);
-server.get(/(\/img\/|\/js\/|\/css\/)\S+/, serve);
-
-// Run ////////////////////////////////////////////////////////
+server.get('/', restify.serveStatic({
+  directory: './static',
+  default: 'index.html'
+}));
 
 server.listen(3001, function() {
     console.log('%s listening at %s', server.name, server.url);

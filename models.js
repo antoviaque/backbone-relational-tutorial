@@ -10,15 +10,17 @@ var mongoose = require('mongoose')
  * Schema definition
  */
 
-var Thread = new Schema({
-    title      : String
-  , messages   : [Message]
-});
-
-var Message = new Schema({
+var Message = new Schema();
+Message.add({
     date_added : Date
   , author     : String 
   , text       : String
+});
+ 
+var Thread = new Schema();
+Thread.add({
+    title      : String
+  , messages   : [Message]
 });
 
 
